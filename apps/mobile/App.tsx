@@ -19,7 +19,7 @@ import {
 
 // 1. Configure the API client host at runtime depending on the platform.
 // Android emulator uses 10.0.2.2 to access host's localhost, while iOS simulator uses localhost.
-const LOCAL_API_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:5000/api' : 'http://localhost:5000/api';
+const LOCAL_API_HOST = Platform.OS === 'android' ? 'http://10.0.2.2:5001/api' : 'http://localhost:5001/api';
 setApiBaseUrl(LOCAL_API_HOST);
 
 const queryClient = new QueryClient({
