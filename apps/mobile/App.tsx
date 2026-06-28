@@ -110,7 +110,7 @@ function DashboardScreen() {
             <View key={item.id || item.invoiceNumber} style={styles.docRow}>
               <View>
                 <Text style={styles.docNumber}>{item.invoiceNumber}</Text>
-                <Text style={styles.docClient}>{item.clientName}</Text>
+                <Text style={styles.docClient}>{item.clientInfo.name}</Text>
               </View>
               <View style={styles.docRight}>
                 <Text style={styles.docAmount}>{formatCurrency(item.totalAmount)}</Text>
@@ -132,7 +132,7 @@ function DashboardScreen() {
             <View key={item.id || item.quoteNumber} style={styles.docRow}>
               <View>
                 <Text style={styles.docNumber}>{item.quoteNumber}</Text>
-                <Text style={styles.docClient}>{item.clientName}</Text>
+                <Text style={styles.docClient}>{item.clientInfo.name}</Text>
               </View>
               <View style={styles.docRight}>
                 <Text style={styles.docAmount}>{formatCurrency(item.totalAmount)}</Text>
