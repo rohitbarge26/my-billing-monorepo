@@ -11,6 +11,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root Landing Route
+app.get('/', (req: Request, res: Response) => {
+  res.send('My Billing Backend API is running successfully!');
+});
+
 // Root API Healthcheck
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', timestamp: new Date() });
