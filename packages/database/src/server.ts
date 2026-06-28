@@ -1,3 +1,3 @@
-export * from './index';
-export { ClientModel, type ClientDocument } from './models/Client';
-export { InvoiceModel, type InvoiceDocument } from './models/Invoice';
+export * from './index.js';
+export { ClientModel, type ClientDocument } from './models/Client.js';
+export { InvoiceModel, type InvoiceDocument } from './models/Invoice.js';

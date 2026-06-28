@@ -1,5 +1,5 @@
 import { Schema, model, Document } from 'mongoose';
-import { Invoice, LineItem } from '../types';
+import { Invoice, LineItem } from '../types.js';
 
 export const LineItemSchema = new Schema<LineItem>({
   description: { type: String, required: true },
