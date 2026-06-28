@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { ProformaInvoiceModel } from '@my-billing/database/server';
-import { proformaSchema } from '@my-billing/database';
+import { InvoiceModel } from '@my-billing/database/server';
+import { invoiceSchema } from '@my-billing/database';
 
 const router = Router();
 
@@ -35,7 +35,7 @@ const calculateTotals = (items: any[]) => {
 // GET: List all proformas
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const proformas = await ProformaInvoiceModel.find()
+    const proformas = await InvoiceModel.find({ documentType: 'PROFORMA' })
       .populate('quotationRef')
       .sort({ createdAt: -1 });
     res.json(proformas);
@@ -47,7 +47,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // GET: Fetch proforma by ID
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const proforma = await ProformaInvoiceModel.findById(req.params.id).populate('quotationRef');
+    const proforma = await InvoiceModel.findOne({ _id: req.params.id, documentType: 'PROFORMA' }).populate('quotationRef');
     if (!proforma) {
       res.status(404).json({ message: 'Proforma Invoice not found' });
       return;
@@ -61,42 +61,44 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // POST: Create a new proforma
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const validatedData = proformaSchema.parse(req.body);
+    const validatedData = invoiceSchema.parse(req.body);
     const totals = calculateTotals(validatedData.items);
     
-    const newProforma = new ProformaInvoiceModel({
+    const newProforma = new InvoiceModel({
       ...validatedData,
       ...totals,
+      documentType: 'PROFORMA',
+      status: validatedData.status || 'DRAFT',
     });
     
     await newProforma.save();
     res.status(201).json(newProforma);
   } catch (error) {
-    res.status(400).json({ error: error });
+    next(error);
   }
 });
 
 // PUT: Update an existing proforma
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await ProformaInvoiceModel.findById(req.params.id);
+    const existing = await InvoiceModel.findOne({ _id: req.params.id, documentType: 'PROFORMA' });
     if (!existing) {
       res.status(404).json({ message: 'Proforma Invoice not found' });
       return;
     }
 
     const merged = { ...existing.toObject(), ...req.body };
-    const validatedData = proformaSchema.parse(merged);
+    const validatedData = invoiceSchema.parse(merged);
     const totals = calculateTotals(validatedData.items);
     
-    const updated = await ProformaInvoiceModel.findByIdAndUpdate(
-      req.params.id,
+    const updated = await InvoiceModel.findOneAndUpdate(
+      { _id: req.params.id, documentType: 'PROFORMA' },
       { ...validatedData, ...totals },
       { new: true }
     );
     res.json(updated);
   } catch (error) {
-    res.status(400).json({ error: error });
+    next(error);
   }
 });
 

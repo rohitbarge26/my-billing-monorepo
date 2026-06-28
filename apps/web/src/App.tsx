@@ -5,6 +5,7 @@ import {
   useGetProformaInvoices,
   useGetFinalInvoices,
 } from '@my-billing/api-client';
+import { type Quotation, type ProformaInvoice, type FinalInvoice } from '@my-billing/database';
 
 export default function App() {
   // Querying using shared TanStack Query hooks from @my-billing/api-client
@@ -15,9 +16,9 @@ export default function App() {
   const isApiError = errorQuotes || errorProformas || errorInvoices;
 
   // Aggregate values for display
-  const totalQuoteVolume = quotations.reduce((sum, q) => sum + (q.totalAmount || 0), 0);
-  const totalProformaVolume = proformas.reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-  const totalInvoiceVolume = invoices.reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+  const totalQuoteVolume = (quotations as Quotation[]).reduce((sum: number, q: Quotation) => sum + (q.totalAmount || 0), 0);
+  const totalProformaVolume = (proformas as ProformaInvoice[]).reduce((sum: number, p: ProformaInvoice) => sum + (p.totalAmount || 0), 0);
+  const totalInvoiceVolume = (invoices as FinalInvoice[]).reduce((sum: number, i: FinalInvoice) => sum + (i.totalAmount || 0), 0);
 
   const formatCurrency = (val: number, curr = 'USD') => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: curr }).format(val);
@@ -95,12 +96,12 @@ export default function App() {
             ) : quotations.length === 0 ? (
               <div className="empty-state">No quotations found. Create one to get started.</div>
             ) : (
-              quotations.slice(0, 5).map((q) => (
+              (quotations as Quotation[]).slice(0, 5).map((q: Quotation) => (
                 <div key={q.id || q.quoteNumber} className="list-row">
                   <span className="doc-number">{q.quoteNumber}</span>
                   <div className="client-info">
-                    <span className="client-name">{q.clientName}</span>
-                    <span className="client-email">{q.clientEmail}</span>
+                    <span className="client-name">{q.clientInfo.name}</span>
+                    <span className="client-email">{q.clientInfo.email}</span>
                   </div>
                   <span className="doc-date">{formatDate(q.validUntil)}</span>
                   <span className="doc-amount">{formatCurrency(q.totalAmount, q.currency)}</span>
@@ -131,12 +132,12 @@ export default function App() {
             ) : proformas.length === 0 ? (
               <div className="empty-state">No proforma invoices found.</div>
             ) : (
-              proformas.slice(0, 5).map((p) => (
+              (proformas as ProformaInvoice[]).slice(0, 5).map((p: ProformaInvoice) => (
                 <div key={p.id || p.proformaNumber} className="list-row">
                   <span className="doc-number">{p.proformaNumber}</span>
                   <div className="client-info">
-                    <span className="client-name">{p.clientName}</span>
-                    <span className="client-email">{p.clientEmail}</span>
+                    <span className="client-name">{p.clientInfo.name}</span>
+                    <span className="client-email">{p.clientInfo.email}</span>
                   </div>
                   <span className="doc-date">{formatDate(p.validUntil)}</span>
                   <span className="doc-amount">{formatCurrency(p.totalAmount, p.currency)}</span>
@@ -167,12 +168,12 @@ export default function App() {
             ) : invoices.length === 0 ? (
               <div className="empty-state">No final invoices found.</div>
             ) : (
-              invoices.slice(0, 5).map((i) => (
+              (invoices as FinalInvoice[]).slice(0, 5).map((i: FinalInvoice) => (
                 <div key={i.id || i.invoiceNumber} className="list-row">
                   <span className="doc-number">{i.invoiceNumber}</span>
                   <div className="client-info">
-                    <span className="client-name">{i.clientName}</span>
-                    <span className="client-email">{i.clientEmail}</span>
+                    <span className="client-name">{i.clientInfo.name}</span>
+                    <span className="client-email">{i.clientInfo.email}</span>
                   </div>
                   <span className="doc-date">{formatDate(i.dueDate)}</span>
                   <span className="doc-amount">{formatCurrency(i.totalAmount, i.currency)}</span>

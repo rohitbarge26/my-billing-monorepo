@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { FinalInvoiceModel } from '@my-billing/database/server';
+import { InvoiceModel } from '@my-billing/database/server';
 import { invoiceSchema } from '@my-billing/database';
 
 const router = Router();
@@ -35,7 +35,7 @@ const calculateTotals = (items: any[]) => {
 // GET: List all final invoices
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const invoices = await FinalInvoiceModel.find()
+    const invoices = await InvoiceModel.find({ documentType: 'FINAL_INVOICE' })
       .populate('proformaRef')
       .sort({ createdAt: -1 });
     res.json(invoices);
@@ -47,7 +47,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // GET: Fetch invoice by ID
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const invoice = await FinalInvoiceModel.findById(req.params.id).populate('proformaRef');
+    const invoice = await InvoiceModel.findOne({ _id: req.params.id, documentType: 'FINAL_INVOICE' }).populate('proformaRef');
     if (!invoice) {
       res.status(404).json({ message: 'Final Invoice not found' });
       return;
@@ -70,22 +70,24 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       validatedData.paymentDate = validatedData.paymentDate || new Date();
     }
     
-    const newInvoice = new FinalInvoiceModel({
+    const newInvoice = new InvoiceModel({
       ...validatedData,
       ...totals,
+      documentType: 'FINAL_INVOICE',
+      status: validatedData.status || 'DRAFT',
     });
     
     await newInvoice.save();
     res.status(201).json(newInvoice);
   } catch (error) {
-    res.status(400).json({ error: error });
+    next(error);
   }
 });
 
 // PUT: Update an existing invoice
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await FinalInvoiceModel.findById(req.params.id);
+    const existing = await InvoiceModel.findOne({ _id: req.params.id, documentType: 'FINAL_INVOICE' });
     if (!existing) {
       res.status(404).json({ message: 'Final Invoice not found' });
       return;
@@ -101,14 +103,14 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
       validatedData.paymentDate = validatedData.paymentDate || new Date();
     }
 
-    const updated = await FinalInvoiceModel.findByIdAndUpdate(
-      req.params.id,
+    const updated = await InvoiceModel.findOneAndUpdate(
+      { _id: req.params.id, documentType: 'FINAL_INVOICE' },
       { ...validatedData, ...totals },
       { new: true }
     );
     res.json(updated);
   } catch (error) {
-    res.status(400).json({ error: error });
+    next(error);
   }
 });
 

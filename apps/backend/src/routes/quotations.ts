@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { QuotationModel } from '@my-billing/database/server';
-import { quotationSchema } from '@my-billing/database';
+import { InvoiceModel } from '@my-billing/database/server';
+import { invoiceSchema } from '@my-billing/database';
 
 const router = Router();
 
@@ -35,7 +35,7 @@ const calculateTotals = (items: any[]) => {
 // GET: List all quotations
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const quotations = await QuotationModel.find().sort({ createdAt: -1 });
+    const quotations = await InvoiceModel.find({ documentType: 'QUOTATION' }).sort({ createdAt: -1 });
     res.json(quotations);
   } catch (error) {
     next(error);
@@ -45,7 +45,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 // GET: Fetch quotation details by ID
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const quotation = await QuotationModel.findById(req.params.id);
+    const quotation = await InvoiceModel.findOne({ _id: req.params.id, documentType: 'QUOTATION' });
     if (!quotation) {
        res.status(404).json({ message: 'Quotation not found' });
        return;
@@ -59,48 +59,44 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // POST: Create a new quotation
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Validate request body
-    const validatedData = quotationSchema.parse(req.body);
-    
-    // Calculate values server-side
+    const validatedData = invoiceSchema.parse(req.body);
     const totals = calculateTotals(validatedData.items);
     
-    const newQuotation = new QuotationModel({
+    const newQuotation = new InvoiceModel({
       ...validatedData,
       ...totals,
+      documentType: 'QUOTATION',
+      status: validatedData.status || 'DRAFT',
     });
     
     await newQuotation.save();
     res.status(201).json(newQuotation);
   } catch (error) {
-    res.status(400).json({ error: error });
+    next(error);
   }
 });
 
 // PUT: Update an existing quotation
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existing = await QuotationModel.findById(req.params.id);
+    const existing = await InvoiceModel.findOne({ _id: req.params.id, documentType: 'QUOTATION' });
     if (!existing) {
       res.status(404).json({ message: 'Quotation not found' });
       return;
     }
 
-    // Merge updates and validate
     const merged = { ...existing.toObject(), ...req.body };
-    const validatedData = quotationSchema.parse(merged);
-    
-    // Recalculate totals
+    const validatedData = invoiceSchema.parse(merged);
     const totals = calculateTotals(validatedData.items);
     
-    const updated = await QuotationModel.findByIdAndUpdate(
-      req.params.id,
+    const updated = await InvoiceModel.findOneAndUpdate(
+      { _id: req.params.id, documentType: 'QUOTATION' },
       { ...validatedData, ...totals },
       { new: true }
     );
     res.json(updated);
   } catch (error) {
-    res.status(400).json({ error: error });
+    next(error);
   }
 });
 

@@ -1,6 +1,14 @@
 import { Schema, model, Document } from 'mongoose';
-import { Invoice } from '../types';
-import { LineItemSchema } from './Quotation';
+import { Invoice, LineItem } from '../types';
+
+export const LineItemSchema = new Schema<LineItem>({
+  description: { type: String, required: true },
+  quantity: { type: Number, required: true, min: 0 },
+  price: { type: Number, required: true, min: 0 },
+  taxRate: { type: Number, default: 0, min: 0 },
+  taxAmount: { type: Number, default: 0, min: 0 },
+  total: { type: Number, default: 0, min: 0 },
+});
 
 // Client info snapshot schema, stored inline to preserve historical values 
 // if a master client profile changes. Do NOT add unique indexes here.
