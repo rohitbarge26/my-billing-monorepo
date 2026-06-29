@@ -486,7 +486,10 @@ export default function App() {
       {/* Top Header */}
       <header className="header">
         <div className="logo-section">
-          <h1>My Billing ERP</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="/website_icon.png" alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'contain' }} />
+            Cashflow Billing ERP
+          </h1>
           <p>Production-Grade Invoicing & Billing Dashboard</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
